@@ -76,7 +76,7 @@ class SpatialAttention(tf.keras.layers.Layer):
 
 
             attention = self.conv2d(filters=1, padding="same")(attention2)
-            print('I am here')
+            
 
 
             return tf.keras.layers.multiply([inputs, attention])
