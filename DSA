@@ -1,0 +1,82 @@
+import numpy as np
+import argparse
+import cv2
+import os
+from google.colab.patches import cv2_imshow
+import matplotlib.pyplot as plt
+
+from keras.models import Sequential
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Activation
+from keras.layers import Flatten
+from keras.layers import Dense
+from keras import backend as K
+import tensorflow as tf
+from keras.layers import *
+from PIL import Image as im
+
+import os,cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow import keras
+
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
+from keras import backend as K
+#K.set_image_dim_ordering('th')
+#from keras.utils import np_utils
+from tensorflow.keras.optimizers import SGD
+from numpy import savetxt
+
+
+class SpatialAttention(tf.keras.layers.Layer):
+      def __init__(self, unit, kernel_size):
+        super(SpatialAttention, self).__init__()
+        self.kernel_size = kernel_size
+        self.unit = unit
+
+        def build(self, input_shape):
+            self.conv2d = tf.keras.layers.Conv2D(filters = self.unit,
+                    kernel_size=self.kernel_size,
+                    strides=1,
+                    padding='same',
+                    activation='sigmoid',
+                    kernel_initializer='he_normal',
+                    use_bias=False)
+
+        def call(self, inputs):
+
+            # AvgPool
+            #x1 = (Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=1, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1a')(inputs))
+            #x2 = (Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=2, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1b')(inputs))
+            #x3 = (Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=3, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1c')(inputs))
+
+            #x1=  self.conv2d(dilation_rate=1)(inputs)
+            #x2=  self.conv2d(dilation_rate=2)(inputs)
+            #x3=  self.conv2d(dilation_rate=3)(inputs)
+
+            #comb= tf.keras.layers.Concatenate(axis=3)([x1, x2, x3])
+
+            #avg_pool = tf.keras.layers.Lambda(lambda x: tf.keras.backend.mean(x, axis=3, keepdims=True))(comb)
+            avg_pool = tf.keras.layers.Lambda(lambda x: tf.keras.backend.mean(x, axis=3, keepdims=True))(inputs)
+
+            # MaxPool
+            #max_pool = tf.keras.layers.Lambda(lambda x: tf.keras.backend.max(x, axis=3, keepdims=True))(comb)
+            max_pool = tf.keras.layers.Lambda(lambda x: tf.keras.backend.max(x, axis=3, keepdims=True))(inputs)
+
+            attention = tf.keras.layers.Concatenate(axis=3)([avg_pool, max_pool])
+            #attention = max_pool
+
+            x1=  Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=1, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1a')(attention)
+            x2=  Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=2, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1b')(attention)
+            x3=  Conv2D(self.unit, kernel_size= self.kernel_size, padding="same", dilation_rate=3, activation='relu', kernel_regularizer=l2(0.0005), name='conv_1c')(attention)
+            attention2 = tf.keras.layers.Concatenate(axis=3)([x2, x3])
+
+
+            attention = self.conv2d(filters=1, padding="same")(attention2)
+            print('I am here')
+
+
+            return tf.keras.layers.multiply([inputs, attention])
