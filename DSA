@@ -83,7 +83,7 @@ class SpatialAttention(tf.keras.layers.Layer):
 
 
             attention = self.conv2d(filters=1, padding="same")(attention2)
-
+            return tf.keras.layers.multiply([inputs, attention])
 
 class NMNet:
   @staticmethod
@@ -142,6 +142,3 @@ class NMNet:
     # return the constructed network architecture
     return model
             
-
-
-            return tf.keras.layers.multiply([inputs, attention])
